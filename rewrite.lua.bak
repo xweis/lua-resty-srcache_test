@@ -143,7 +143,32 @@ function _M.getTtl(self)
 end
 
 
+function _M.urlCheck(self,url)
+
+    local cache_url_list = {
+        ["/a"] = 30,
+        ["/channel"] = 10,
+    }
+
+    for k,v in pairs(cache_url_list) do
+        if url == k then
+            return v
+        end
+    end
+    return nil
+
+end
+
+
 function _M.run(self)
+
+    local aexptime = self.urlCheck(self, ngx.re.sub(ngx.var.request_uri, "\\?.*", ""))
+    if not aexptime or aexptime < 0 then
+        ngx.log(NOTICE, aexptime)
+        ngx.var.is_cache = 0
+        return
+    end
+
 
     local skip = ngx.var["http_" .. self.cache_skip_fetch:lower():gsub("-", "_")]
     -- 如果 X-Skip-Fetch 有值或者请求不是 get方式 return
